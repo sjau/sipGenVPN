@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+serverAddress="vpn.domain.tld"
+serverPort="1194"
+serverProto="udp"
+
+easyRSAVersion="3"
+easyRSAPath=""      # The base folder to Easy RSA 3.0, e.g. '/root/EasyRSA-3.0.1'
+
+template="
+client
+dev tun
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+
+key-direction 1
+
+cipher BF-CBC
+
+ns-cert-type server
+verb 3
+mute 50
+
+comp-lzo
+
+remote ${serverAddress}
+port ${serverPort}
+proto ${serverProto}
+
+sndbuf 0
+rcvbuf 0
+
+; below, the certs and keys will be added
+"
