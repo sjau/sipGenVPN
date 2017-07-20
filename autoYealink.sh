@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 confName="${1}"
+type="client"
 
 # Source common.sh
 source "./common.sh"

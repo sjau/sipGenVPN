@@ -1,36 +1,58 @@
 #!/usr/bin/env bash
 
-serverAddress="vpn.domain.tld"
-serverPort="1194"
-serverProto="udp"
+address="vpn.domain.tld"
+port="1194"
+proto="udp"
+devName=""                      # the dev interface will be given this name * _srv / _cli, e.g. myvpn_srv / myvpn_cli
+subnet="10.8.0.0"
+dns="10.8.0.1"                  # Push DNS Server to client, .1 is the OpenVPN server, can also be 8.8.8.8 for Google
+verbosity="3"
+
 
 easyRSAVersion="3"
 easyRSAPath=""      # The base folder to Easy RSA 3.0, e.g. '/root/EasyRSA-3.0.1'
 
-template="
-client
-dev tun
-resolv-retry infinite
-nobind
+# Feel free to adjust your default templaste as you want.
+# For SIP - with not so powerful phones - you might want to consider as cipher BF-CBC
+
+common="
+dev-type tun
+cipher AES-256-CBC
+comp-lzo
 persist-key
 persist-tun
-
-key-direction 1
-
-cipher BF-CBC
-
-ns-cert-type server
-verb 3
+verb ${verbosity}
 mute 50
-
-comp-lzo
-
-remote ${serverAddress}
-port ${serverPort}
-proto ${serverProto}
-
 sndbuf 0
 rcvbuf 0
+"
 
-; below, the certs and keys will be added
+server="dev ${devName}_srv
+key-direction 0
+client-to-client
+ping-timer-rem
+keepalive 10 180
+topology subnet
+port ${port}
+proto ${proto}
+server ${subnet} 255.255.255.0
+push 'route ${subnet} 255.255.255.0'
+#push 'redirect-gateway def1 bypass-dhcp'
+push 'dhcp-option DNS ${dns}'
+ifconfig-pool-persist ipp.txt
+status status.log
+log         openvpn.log
+#log-append  openvpn.log
+#client-config-dir ccd
+"
+
+client="client
+dev ${devName}_cli
+key-direction 1
+resolv-retry infinite
+nobind
+remote-cert-tls server
+remote ${address}
+port ${port}
+proto ${proto}
 "

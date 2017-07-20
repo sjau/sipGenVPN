@@ -4,6 +4,7 @@
 type -P "unix2dos" &>/dev/null || { printf '\033[1;31mError:\033[0m %s\n' "Couldn't find the 'unix2dos' program. Please install."; exit 1; }
 
 confName="${1}"
+type="client"
 
 # Source common.sh
 source "./common.sh"

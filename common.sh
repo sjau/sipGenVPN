@@ -34,29 +34,45 @@ fi
 case "${easyRSAVersion}" in
     3)  caPath="${easyRSAPath}/pki"
         crtPath="${easyRSAPath}/pki/issued"
+        dhPath="${easyRSAPath}/pki"
         keyPath="${easyRSAPath}/pki/private"
-        taPath="${easyRSAPath}/pki"
+        taPath="config/"
         ;;
     *)  _Error "Your EasyRSA Version is not suppored."
 esac
 
 # Check if files exist
-if [[ ! -e "${caPath}/ca.crt" ]]; then _Error "Couldn't find 'ca.crt' in '${caPath}/'. Please fix."; fi;
-if [[ ! -e "${crtPath}/${confName}.crt" ]]; then _Error "Couldn't find '${confName}.crt' in '${crtPath}/'. Please fix."; fi;
-if [[ ! -e "${keyPath}/${confName}.key" ]]; then _Error "Couldn't find '${confName}.key' in '${keyPath}/'. Please fix."; fi;
-if [[ ! -e "${taPath}/ta.key" ]]; then _Error "Couldn't find 'ta.key' in '${taPath}/'. Please fix. You can generate a new key by running this command:  'openvpn --genkey --secret ${taPath}/ta.key'"; fi;
+if [[ ! -e "${caPath}/ca.crt" ]];           then _Error "Couldn't find 'ca.crt' in '${caPath}/'. Please fix."; fi
+if [[ ! -e "${crtPath}/${confName}.crt" ]]; then _Error "Couldn't find '${confName}.crt' in '${crtPath}/'. Please fix."; fi
+if [[ ! -e "${dhPath}/dh.pem" ]];           then _Error "Couldn't find 'dh.pem' in '${dhPath}''. Please fix."; fi
+if [[ ! -e "${keyPath}/${confName}.key" ]]; then _Error "Couldn't find '${confName}.key' in '${keyPath}/'. Please fix."; fi
+if [[ ! -e "${taPath}/ta.key" ]];           then _Error "Couldn't find 'ta.key' in the 'config' folder. Please run './genTA-Key.sh' to create one."; fi
 
 # Create config subfolder
-mkdir -p "config"
+mkdir -p "config" || _Error "Couldn't create the config folder. Please fix."
 
 # Load cert contents into vars
 ca=$(<"${caPath}/ca.crt")
 cert=$(<"${crtPath}/${confName}.crt")
 key=$(<"${keyPath}/${confName}.key")
 ta=$(<"${taPath}/ta.key")
+# dh only needs to be on server, hence special treatment
+dh=$(<"${dhPath}/dh.pem")
+dh="<dh>
+${dh}
+</dh>"
+
+case "${type}" in
+    server) template="${server}"
+            ;;
+    client) template="${client}"
+            dh=""
+            ;;
+esac
 
 # Add inline keys and certs to template
 template="${template}
+${common}
 
 <ca>
 ${ca}
@@ -69,6 +85,8 @@ ${key}
 </key>
 <tls-auth>
 ${ta}
-</tls-auth>"
+</tls-auth>
+${dh}
+"
 
 printf "%s" "${template}" > "config/.config.tmp"

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 confName="${1}"
-type="client"
+type="server"
 
 # Source common.sh
 source "./common.sh"
@@ -14,3 +14,4 @@ mv ".config.tmp" "${confName}.conf"
 
 # Success
 _Success "The generated config file is available as 'config/${confName}.conf'"
+
