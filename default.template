@@ -27,7 +27,7 @@ sndbuf 0
 rcvbuf 0
 "
 
-server="dev ${devName}_srv
+server="dev ${confName}_srv
 key-direction 0
 client-to-client
 ping-timer-rem
@@ -47,7 +47,7 @@ log         openvpn.log
 "
 
 client="client
-dev ${devName}_cli
+dev ${confName}_cli
 key-direction 1
 resolv-retry infinite
 nobind
